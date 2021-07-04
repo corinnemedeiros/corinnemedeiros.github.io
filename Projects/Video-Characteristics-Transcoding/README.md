@@ -9,9 +9,10 @@ This study examines characteristics of videos from YouTube and aims to provide i
 
 Transcoding is the process of converting videos from one format to another (Cardwell, n.d.). Videos differ in frame rates, codecs, durations, size, and color management for instance. Transcoding to different formats involves a considerable amount of time and computer memory usage, so looking at which video metadata are responsible for the time and memory used can help give insight on where to optimize the process. In order to analyze the data, I explored the relationships between video characteristics and transcode time through a variety of visualizations representing variable distributions and correlations.  
 
-### Files:
-* [Project Proposal](https://corinnemedeiros.github.io/Projects/Video-Characteristics-Transcoding/Video-Characteristics-Transcoding_Proposal.pdf)  
-* [Project Draft](https://corinnemedeiros.github.io/Projects/Video-Characteristics-Transcoding/Video-Characteristics-Transcoding_Draft.pdf)  
+### Files: 
+* [Report](https://corinnemedeiros.github.io/Projects/Video-Characteristics-Transcoding/Video-Characteristics-Transcoding_Report.pdf)
+* [Presentation](https://youtu.be/1Mk7VKnO7Sg)
+* [Code](https://corinnemedeiros.github.io/Projects/Video-Characteristics-Transcoding/Video-Characteristics-Transcoding_EDA.html)
 
 ### Libraries:  
 * pandas  
@@ -62,8 +63,3 @@ Photographs by [Unsplash](https://unsplash.com/)
 
 ### License
 The content of this project itself is licensed under the [Creative Commons Attribution 3.0 Unported license](https://creativecommons.org/licenses/by/3.0/), and the underlying source code used to format and display that content is licensed under the [MIT license](https://github.com/github/choosealicense.com/blob/gh-pages/LICENSE.md).
-
-
-```python
-
-```
