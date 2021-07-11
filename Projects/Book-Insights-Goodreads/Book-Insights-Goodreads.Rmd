@@ -1,0 +1,205 @@
+---
+title: "Book Insights from Goodreads"
+author: "Corinne Medeiros"
+date: "8/8/2019"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r echo=FALSE, message=FALSE}
+
+# Loading libraries
+library(tidyverse)
+library(ggplot2)
+library(lemon)
+library(boot)
+library(ggm)
+library(Hmisc)
+library(polycor)
+library(car)
+library(QuantPsyc)
+library(scales)
+
+knit_print.data.frame <- lemon_print
+
+# Loading data
+books_data <- read.csv("books.csv", header = TRUE, stringsAsFactors = FALSE)
+
+```
+
+## **Introduction**
+
+#### Using data from the Goodreads API, I'm analyzing which factors have the most impact on the popularity of a book. Booksellers, publishers, and authors could be interested in this analysis for optimizing ratings given known factors of success. This dataset, downloaded from Kaggle, contains titles, authors, ratings, languages, page counts, and ratings counts for over 13,000 books. It was created on May 25, 2019, and has been frequently updated. Redundant information has been removed, with the purpose of creating a clean dataset for booklovers, consisting of 10 variables. The Kaggle dataset can be downloaded here: <https://www.kaggle.com/jealousleopard/goodreadsbooks>
+
+#### **Preview of the original data:**
+
+```{r render=lemon_print}
+
+# Glimpse of original datset
+glimpse(books_data)
+
+```
+
+## **Data Cleaning Process** 
+
+#### **Adjusting column names and variable types to improve readability and future plotting:**
+
+```{r}
+
+# Changing "X..num_pages" column name to "number_of_pages"
+colnames(books_data)[colnames(books_data)=="X..num_pages"] <- "number_of_pages"
+
+# Changing number of pages to number type
+books_data$number_of_pages <- as.integer(books_data$number_of_pages)
+
+```
+
+#### **Checking for and removing missing values:**
+
+```{r}
+
+# Looking at summary of missing values
+missing <- is.na(books_data)
+summary(missing)
+
+# Total number of missing values
+sum(is.na(books_data))
+
+# Removing missing values
+books_data_no_na <- na.omit(books_data)
+
+# Checking new dataset to confirm missing values have been removed
+sum(is.na(books_data_no_na))
+
+# Replacing all numbers in language code column with empty string
+books_data_no_na$language_code <- gsub("[0-9]+", "", books_data_no_na$language_code)
+
+# Removing observations from language code column that are only empty strings
+books_data_no_na <- books_data_no_na[books_data_no_na$language_code!="",]
+
+```
+
+#### **Removing unneccessary columns from dataset:**
+
+###### I'm removing the isbn columns since they contain all unique values that won't help me in this analysis.
+
+```{r render=lemon_print}
+
+books_data_new = subset(books_data_no_na, select = -c(isbn, isbn13))
+
+# Preview of cleaned dataset
+head(books_data_new, n = 10)
+
+```
+
+#### **Accounting for multiple authors:**
+
+```{r}
+
+# Converting authors column to character type
+books_data_new$authors <- as.character(books_data_new$authors)
+
+# Adding new variable to dataset to identify books with multiple authors
+books_data_new$multiple_authors <- grepl("-", books_data_new$authors)
+
+```
+
+## **Data Visualization:**
+
+#### **First, I'm looking at how page count affects average rating. As page numbers increase, do ratings rise or fall?**
+
+```{r}
+# Filtering data to page numbers less than 1,000 
+books_data_new <- 
+  books_data_new %>%  
+  filter(number_of_pages < 1000)
+
+# Scatterplot to explore relationship between number of pages and average rating
+ggplot(books_data_new, aes(x = number_of_pages, y = as.numeric(average_rating))) +
+  geom_point(alpha = 0.5, color = 'darkgreen') + 
+  ggtitle("Goodreads Number of Pages vs. Average Rating") +
+  xlab("Number of Pages") + ylab("Average Rating")
+
+```
+
+##### This graph is the most dense between 100 and 400 pages, which tells us that because the majority of books have that range of page numbers, that's where most of the ratings fall. As expected, the highest and lowest ratings have very little data points. As page numbers increase, there is a drop in the amount of ratings, therefore there are less data points.
+
+#### **Next, I'm going to look at language codes. What is the distribution like?**
+
+```{r}
+# Histogram to show distribution of language codes
+ggplot(data = books_data_new) +
+  geom_bar(mapping = aes(x = language_code), fill = 'purple') + 
+  scale_x_discrete(labels = c("en-US" = "US", "en-GB" = "GB", "en-CA" = "CA")) + 
+  ggtitle("Goodreads Language Codes") +
+  xlab("Language Code") + ylab("Count")
+
+```
+
+#### **Since the majority is English, I'll try filtering out the outliers.**
+
+```{r}
+# Filtering data to only English language books
+books_data_new.eng <- 
+  books_data_new %>%  
+  filter(language_code=="eng")
+
+# Scatterplot to explore relationship between number of pages and average rating
+ggplot(books_data_new.eng, aes(x = number_of_pages, y = as.numeric(average_rating), color = ratings_count)) +
+  geom_point(alpha = 0.5) + 
+  ggtitle("Goodreads Number of Pages vs. Average Rating (English Language)") +
+  xlab("Number of Pages") + ylab("Average Rating") + labs(color = "Ratings Count") + 
+  scale_color_continuous(labels = comma)
+```
+
+##### This graph is very similar to the previous scatterplot, because the majority of books in this dataset are in fact English language books. The same conclusions apply.
+
+#### **Do books with a higher amount of reviews have higher ratings?**
+
+```{r}
+
+# Filtering data to books with less than 500 reviews
+books_data_new.eng.f <-
+  books_data_new.eng %>%
+  filter(text_reviews_count < 500)
+
+# Scatterplot for number of reviews vs. average rating
+ggplot(books_data_new.eng.f, aes(x = text_reviews_count, y = as.numeric(average_rating), color = factor(multiple_authors))) +
+  geom_point(alpha = 0.5) + 
+  ggtitle("Goodreads Number of Reviews vs. Average Rating (English Language)") +
+  xlab("Number of Reviews") + ylab("Average Rating") + labs(color = "Multiple Authors")
+
+# Correlation between reviews and ratings
+cor(books_data_new.eng$text_reviews_count, as.numeric(books_data_new.eng$average_rating))
+
+```
+##### The average rating stays the same even as more people review it. The reviews beyond a certain number don't have any impact on rating. Also, having multiple authors doesn't seem to have any distinguishable effect on average rating. The correlation analysis of ~.04 confirms there is little to no significant relationship between the number of reviews and average rating.
+
+## **Multiple Regression Analysis:**
+
+```{r}
+# Selecting variables from dataset
+books_data_new.eng.1 <- books_data_new.eng[, c("average_rating", "number_of_pages", "ratings_count", "text_reviews_count")]
+
+# Multiple Regression model predicting average rating
+books_data_new.eng.1_mod <- lm(as.numeric(average_rating) ~ number_of_pages + ratings_count + text_reviews_count, data = books_data_new.eng)
+
+summary(books_data_new.eng.1_mod)
+
+```
+
+##### The results from the multiple regression analysis summary reveal the low significance of the relationship between these variables in terms of predicting average rating.
+
+### **Implications to the consumer:**  
+
+##### Some of the key takeaways for Booksellers, publishers, and authors are: the number of authors doesn't impact ratings, readers generally tend to gravitate towards books that have between 100 and 400 pages, and the amount of reviews a book has doesn't impact average rating. The initial round of reviews is critical since they have more weight than reviews that come later for a book.
+
+### **Limitations and areas of improvement:**
+
+##### Some of the limitations of this analysis include limited variables and limited language codes. This limits us from gaining insights from books of other languages. Also, having more variables like genre and date published would improve the scope and accuracy. Year published could help us understand historical trends and possibly help predict future trends using machine learning algorithms.
+

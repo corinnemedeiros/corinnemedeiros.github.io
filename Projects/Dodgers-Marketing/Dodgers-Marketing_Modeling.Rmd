@@ -1,0 +1,127 @@
+---
+html_document:
+  df_print: paged
+author: "Corinne Medeiros"
+date: "September 20th 2020"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+title: "Improving a Dodgers Marketing Promotion - Modeling in R"
+word_document: default
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE)
+```
+### **Objective:** Determine what night would be the best to run a marketing promotion to increase attendance.
+
+**Data source:**  
+Dodgers Major League Baseball data from 2012  
+[Data Source: dodgers.csv](https://corinnemedeiros.github.io/Projects/Dodgers-Marketing/dodgers.csv)
+
+After using Python to explore the Dodgers data and create some visualizations, I am now using R to create Regression models. Looking at the model summary results will help to determine which factors might be the best predictors of attendance.
+
+```{r echo = FALSE, message = FALSE}
+library(boot)
+library(ggm)
+library(ggplot2)
+library(Hmisc)
+library(polycor)
+library(readxl)
+library(car)
+library(QuantPsyc)
+library(broom)
+
+# Loading data
+dodgers_data <- readr::read_csv("dodgers.csv")
+
+```
+
+```{r}
+# All variables in dataset
+colnames(dodgers_data)
+
+```
+
+### **Splitting data into train and test sets**  
+
+```{r}
+library(caTools)
+
+# Ensuring random numbers are generated
+set.seed(123) 
+
+# Splitting data into 80/20 ratio
+sample = sample.split(dodgers_data, SplitRatio = 0.20)
+
+# Creating a training dataset and testing dataset
+dodgers_train = subset(dodgers_data, sample==FALSE)
+dodgers_test = subset(dodgers_data, sample==TRUE)
+
+```
+### **Regression models using training data**  
+
+```{r}
+# Regression model using 'date'
+dodgers_data_date_mod <- lm(attend ~ day, data = dodgers_train)
+summary(dodgers_data_date_mod)
+```
+
+```{r}
+# Regression model using 'day of week'
+dodgers_data_dow_model <- lm(attend ~ day_of_week, data = dodgers_train)
+summary(dodgers_data_dow_model)
+
+```
+
+```{r}
+# Regression model using 'day of week' and 'month'
+dodgers_data_dow_month_mod <- lm(attend ~ day_of_week + month, data = dodgers_train)
+summary(dodgers_data_dow_month_mod)
+
+```
+
+### **Comparing performance of models**  
+
+```{r}
+# Metrics for model 1 - 'date'
+glance(dodgers_data_date_mod) %>%
+  dplyr::select(adj.r.squared, sigma, AIC, BIC, p.value)
+
+```
+
+```{r}
+# Metrics for model 2 - 'day of week'
+glance(dodgers_data_dow_model) %>%
+  dplyr::select(adj.r.squared, sigma, AIC, BIC, p.value)
+
+```
+
+```{r}
+# Metrics for model 3 - 'day of week' and 'month'
+glance(dodgers_data_dow_month_mod) %>%
+  dplyr::select(adj.r.squared, sigma, AIC, BIC, p.value)
+
+```
+
+### **Regression model using testing data**  
+
+```{r}
+# Regression model using 'day of week' and 'month'
+dodgers_data_dow_month_mod <- lm(attend ~ day_of_week + month, data = dodgers_test)
+summary(dodgers_data_dow_month_mod)
+
+```
+
+```{r}
+# Metrics for model 3 - 'day of week' and 'month' (using testing data set)
+glance(dodgers_data_dow_month_mod) %>%
+  dplyr::select(adj.r.squared, sigma, AIC, BIC, p.value)
+
+```
+
+
+### **Conclusion:**
+
+Based on the summaries of these regression models, month and day of the week are the best predictors of attendance at a Dodgers game in 2012. The model using day of the week and month (model 3) had the lowest AIC and BIC scores, the highest R2, and the lowest F-statistic p.value, making it more statistically significant. Running the same model using the testing data also proved successful, with a high R2 and low p.value. All in all, in order to improve attendance, it would be most effective to run a marketing promotion on **Tuesdays in June.** This way, you're most likely to reach the largest audience for the promotion. 
