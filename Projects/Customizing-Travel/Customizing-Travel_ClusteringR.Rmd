@@ -1,0 +1,131 @@
+---
+title: "Customizing Travel Based on User Ratings - Clustering in R"
+author: "Corinne Medeiros"
+date: "7/18/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r message=FALSE, warning=FALSE}
+# Importing Libraries
+library(factoextra)
+library(ggplot2)
+library(GGally)
+library(ggpubr)
+library(magrittr)
+library(cluster)
+library(plotly)
+library(dplyr)
+```
+
+## Loading Data
+
+```{r}
+# Loading cleaned data from Python Jupyter Notebook
+travel_df <- read.csv("travel_df.csv", header=TRUE)
+```
+
+## Processing Data
+
+```{r}
+# Setting User ID column as index
+rownames(travel_df) <- travel_df$X
+```
+
+```{r}
+# Removing original User ID column
+travel_df$X <- NULL
+
+# Data preview
+head(travel_df, n=10)
+```
+
+## Clustering Users with k-means
+
+```{r}
+# Estimating optimal number of clusters
+fviz_nbclust(travel_df, kmeans, method = "wss") +
+geom_vline(xintercept = 3, linetype = 2)
+```
+
+From this graph, we can see that the optimal number of clusters is 3.
+
+```{r}
+# Setting a seed for R’s random number generator to ensure reproducible results
+set.seed(123)
+
+# Computing k-means with k = 3
+km.res <- kmeans(travel_df, 3, nstart = 25)
+```
+
+```{r}
+# Printing results
+print(km.res)
+```
+
+Our results indicate a 39.4 % compactness of the clustering, which represents how similar the users within each group are to each other.
+
+```{r}
+# Get cluster means
+aggregate(travel_df, by=list(km.res$cluster), FUN=mean)
+
+# Append cluster assignment to dataframe
+travel_df <- data.frame(travel_df, km.res$cluster)
+
+```
+
+```{r}
+# Data preview
+head(travel_df, n=10)
+```
+
+## Visualizing k-means clusters
+
+```{r}
+# Changing color palette and theme
+fviz_cluster(km.res, travel_df,
+   palette = "Set2", ggtheme = theme_minimal())
+
+# Visualizing kmeans clustering using fviz_cluster()
+fviz_cluster(km.res, data = travel_df,
+             palette = c("#2E9FDF", "#00AFBB", "#E7B800"), 
+             geom = "point",
+             ellipse.type = "norm", 
+             ggtheme = theme_bw()
+             )
+```
+
+## Evaluating the clustering
+
+```{r}
+# Using silhouette coefficient (silhouette width) to evaluate the clusters
+sil <- silhouette(km.res$cluster, dist(travel_df))
+fviz_silhouette(sil)
+
+```
+
+The silhouette plot shows that clustering in three groups is somewhat good since there are no negative silhouette widths, and most of the values are close to 0.5. Ideally however, they should be bigger than 0.5.
+
+## Interpreting clustering with a Parallel Coordinate Plot
+
+```{r warning=FALSE, message=FALSE}
+# Converting cluster column from numeric to factor
+travel_df$cluster <- as.factor(km.res$cluster)
+
+# Generating Parallel Coordinate Plot
+p <- ggparcoord(data = travel_df, columns = c(1:10), groupColumn = "cluster", scale = "globalminmax") + 
+  labs(x = "Category", y = "User Rating", title = "Clustering Interpretation") + 
+  theme(axis.text.x = element_text(angle = 90))
+ggplotly(p)
+
+```
+
+From this parallel coordinate plot, we can visualize which categories are more popular per cluster. For example, Cluster 1 users enjoy religious institutions but not dance clubs, museums, or resorts. Users in Cluster 2 enjoy juice bars, and users in Cluster 3 generally enjoy dance clubs and religious institutions but not juice bars. With this information, a travel company could make three different itineraries with different activity recommendations for these three groups of users.
+
+```{r}
+# Saving dataframe to csv
+write.csv(travel_df,"travel_df_clustered.csv", row.names = TRUE)
+```
