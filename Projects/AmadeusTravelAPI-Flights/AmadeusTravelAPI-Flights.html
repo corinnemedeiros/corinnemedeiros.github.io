@@ -3,7 +3,7 @@
 <head><meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Project-AmadeusTravelAPI-Flights</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
+<title>AmadeusTravelAPI-Flights</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
 
 
 
@@ -14259,7 +14259,7 @@ a.anchor-link {
 
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>File: Project-AmadeusTravelAPI-Flights.ipynb<br>
+<p>File: AmadeusTravelAPI-Flights.ipynb<br>
 Name: Corinne Medeiros<br>
 Date: 02/29/20<br>
 Description: Program pulls flight data from the Amadeus Travel API, stores it in a Pandas dataframe, cleans up headers and columns, and saves the dataframe to a CSV file.</p>
@@ -14284,7 +14284,8 @@ Description: Program pulls flight data from the Amadeus Travel API, stores it in
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="Exploring-Flight-Options-with-Amadeus-Travel-API">Exploring Flight Options with Amadeus Travel API<a class="anchor-link" href="#Exploring-Flight-Options-with-Amadeus-Travel-API">&#182;</a></h2>
+<h2 id="Exploring-Flight-Options-with-Amadeus-Travel-API">Exploring Flight Options with Amadeus Travel API<a class="anchor-link" href="#Exploring-Flight-Options-with-Amadeus-Travel-API">&#182;</a></h2><p>Visit <a href="https://developers.amadeus.com/get-started/get-started-with-self-service-apis-335">https://developers.amadeus.com/get-started/get-started-with-self-service-apis-335</a> to get your 'API Key' and 'API Secret' credentials before running this code.</p>
+
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
@@ -14294,10 +14295,10 @@ Description: Program pulls flight data from the Amadeus Travel API, stores it in
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">amadeus</span> <span class="kn">import</span> <span class="n">Client</span><span class="p">,</span> <span class="n">ResponseError</span>
 
-<span class="c1"># Initializing Amadeus library using my credentials</span>
+<span class="c1"># Initializing Amadeus library using your credentials</span>
 <span class="n">amadeus</span> <span class="o">=</span> <span class="n">Client</span><span class="p">(</span>
-    <span class="n">client_id</span><span class="o">=</span><span class="s1">&#39;ASGeALuDm6zEXAYoquO6ZmGcPHLHWDDj&#39;</span><span class="p">,</span>
-    <span class="n">client_secret</span><span class="o">=</span><span class="s1">&#39;AuiUr1fS5Af9UfD0&#39;</span>
+    <span class="n">client_id</span><span class="o">=</span><span class="s1">&#39;API KEY&#39;</span><span class="p">,</span>
+    <span class="n">client_secret</span><span class="o">=</span><span class="s1">&#39;API SECRET&#39;</span>
 <span class="p">)</span>
 </pre></div>
 
